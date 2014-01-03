@@ -171,6 +171,7 @@
               if(text >= 60){
                 text -= 60;
               }
+              context.fillStyle = "black";
               context.fillText(text.toString(), x1, y1);
             }
           }
