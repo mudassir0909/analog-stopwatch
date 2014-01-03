@@ -11,32 +11,43 @@
     });
 
     // angle in degrees
-    var getX = function(cx, radius, angle){
+    Dial.getX = getX = function(cx, radius, angle){
       angle = (angle/180)*(Math.PI);
       return cx + (radius * Math.cos(angle));
     }
 
     // angle in degrees
-    var getY = function(cy, radius, angle){
+    Dial.getY = getY = function(cy, radius, angle){
       angle = (angle/180)*(Math.PI);
       return cy + (radius * Math.sin(angle));
     }
     
-    var drawCircle = function(radius, options){
+    /*
+      arguments would be radius, options/customStyle
+      options can be a set of defined properties that needs to be written on to the context
+      Alternatively, we can pass an function as second argument if we wish to do custom styling
+    */
+    var drawCircle = function(options, customStyling){
+      var args = [].slice.call(arguments);
       var cx = _this.cx;
       var cy = _this.cy;
       var context = _this.context;
+      var radius = options.radius;
+      var clockwise = !!(options.clockwise);
 
       context.beginPath();
-      context.arc(cx, cy, radius, 0, 2 * Math.PI, false);
-      if(options != null){
-        ['lineWidth', 'strokeStyle'].forEach(function(property){
-          if(options[property] != null){
-            context[property] = options[property];
-          }
-        })
+      context.arc(cx, cy, radius, 0, 2 * Math.PI, clockwise);
+      ['lineWidth', 'strokeStyle'].forEach(function(property){
+        if(options[property] != null){
+          context[property] = options[property];
+        }
+      })
+
+      if(customStyling != null){
+        customStyling(context);
+      }else{
+        context.stroke();
       }
-      context.stroke();
     }
 
     var drawLine = function(x1, y1, x2, y2){
@@ -111,8 +122,8 @@
         context.fill();
       }
       
-      drawCircle(innerCircleRadius, {lineWidth: 5});
-      drawCircle(outerCircleRadius);
+      drawCircle({radius: innerCircleRadius, lineWidth: 5});
+      drawCircle({radius: outerCircleRadius});
       drawPointerBase(pointerAngle + 120);
       drawPointerTip(pointerAngle + 240);
     }
@@ -170,7 +181,13 @@
     }
 
     this.redraw = function(tickAngle){
-      drawCircle(this.dialRadius, {lineWidth: this.dialThickness, strokeStyle: 'black'});
+      drawCircle({radius: this.dialRadius, lineWidth: this.dialThickness}, dialOptions.customStyling);
+      if(dialOptions.innerFill){      
+        drawCircle({radius: this.dialRadius}, function(ctx){
+          ctx.fillStyle = "white";
+          ctx.fill();
+        })
+      }
       drawTicks();
       drawPointer(tickAngle);
     }
